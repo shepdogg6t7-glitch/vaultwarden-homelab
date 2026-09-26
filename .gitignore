@@ -1,0 +1,5 @@
+# Vaultwarden data (contains real vault data if this is ever run for real use)
+vw-data/
+
+# Environment overrides
+.env

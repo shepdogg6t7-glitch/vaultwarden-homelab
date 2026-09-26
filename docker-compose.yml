@@ -1,0 +1,15 @@
+services:
+  vaultwarden:
+    image: vaultwarden/server:latest
+    container_name: vaultwarden
+    restart: always
+    ports:
+      - "8081:80"
+    volumes:
+      - vaultwarden_data:/data
+    environment:
+      - WEBSOCKET_ENABLED=true
+      - DOMAIN=http://localhost:8081
+
+volumes:
+  vaultwarden_data:
