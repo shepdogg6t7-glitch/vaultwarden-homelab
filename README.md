@@ -30,7 +30,9 @@ Running your own password manager backend touches real infrastructure concerns: 
 
 **Option B — one command, no Portainer required:**
 
+```
 docker compose up -d
+```
 
 Either way, the web vault login/registration screen loads immediately at http://localhost:8081.
 
@@ -46,12 +48,33 @@ This deployment is intentionally local-only, and that's a deliberate security bo
 
 So rather than force a workaround (self-signed certs on a throwaway demo, disabling security checks, etc.), this repo stops at "server deployed and reachable" and picks the real fix back up in Project 4 (Nginx Proxy Manager), which provisions a free, auto-renewing HTTPS certificate. Once that's in place, this same Vaultwarden container gets a real domain and certificate in front of it, and full login/sync works exactly as it would in production — across every device, not just this one machine.
 
+## Backups
+
+Vaultwarden stores its data in a SQLite database inside the `vaultwarden_data` named volume. That database is the entire vault — encrypted entries, user records, and the metadata that ties them together. **A password manager with no backup strategy is a password manager that loses everything in a single disk failure.**
+
+This repo runs local-only and does not implement automated backups — it is a deployment demo, not the storage layer you would trust with credentials you cannot afford to lose. Before using this for real, the minimum viable backup setup is:
+
+- A nightly SQLite `.backup` snapshot (safe while the service is running, unlike a raw file copy of `db.sqlite3`)
+- Copied off-host — to a NAS, object storage, or another machine
+- With at least one generation retained beyond the most recent, so a corrupted backup does not overwrite a good one
+- Tested by restoring into a scratch container at least once
+
+The named-volume design in `docker-compose.yml` makes this straightforward: a `docker run --rm` invocation that mounts both `vaultwarden_data` and a backup directory can produce a portable tarball without stopping the container.
+
 ## Screenshots
 
 | Step | Screenshot |
 |------|------------|
 | Portainer stack deployed | screenshots/01-stack-deployed.png |
 | Vaultwarden web vault (login/registration screen) | screenshots/02-web-vault.png |
+
+## Related Projects
+
+This repo is one piece of a self-hosted homelab portfolio:
+
+- **[docker-portainer-homelab](https://github.com/shepdogg6t7-glitch/docker-portainer-homelab)** — container management UI (the layer this stack deploys through)
+- **[uptime-kuma-homelab](https://github.com/shepdogg6t7-glitch/uptime-kuma-homelab)** — service monitoring and alerting
+- **[nginx-proxy-manager-homelab](https://github.com/shepdogg6t7-glitch/nginx-proxy-manager-homelab)** — reverse proxy and TLS termination (provides HTTPS for this service in a full deployment)
 
 ## Credit
 
